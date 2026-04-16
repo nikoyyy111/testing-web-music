@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PlayList Nika - Ultimate Edition</title>
+    <title>PlayList Nika - Auto Save</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Philosopher:ital,wght@0,700;1,700&family=Poppins:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
 
         :root {
             --smooth-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -26,31 +26,28 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 9999; transition: opacity 1s ease;
         }
+
         .nika-sun-core {
             width: 50px; height: 50px; background: #ffffff; border-radius: 50%; position: relative; z-index: 2;
             box-shadow: 0 0 20px #ffffff, 0 0 50px rgba(255, 255, 255, 0.4);
             animation: smooth-rhythm 1.6s infinite cubic-bezier(0.25, 0.8, 0.25, 1);
         }
+
         .nika-sun-core::before {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
             border-radius: 50%; animation: smooth-pulse 1.6s infinite cubic-bezier(0.25, 0.8, 0.25, 1); z-index: -1;
         }
+
         .nika-sun-core.explode {
             animation: none; transition: transform 1s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.8s ease;
             transform: scale(80); opacity: 0; box-shadow: 0 0 100px #fff;
         }
         .nika-sun-core.explode::before { display: none; }
+
         .loader-text {
-            margin-top: 60px; 
-            color: #ffffff; 
-            font-weight: 700; 
-            font-size: 1.4em; 
-            letter-spacing: 8px;
-            font-family: 'Cinzel', serif; 
-            text-transform: uppercase; 
-            position: relative; 
-            z-index: 2;
+            margin-top: 60px; color: #ffffff; font-weight: 800; font-size: 1.2em; letter-spacing: 10px;
+            text-transform: uppercase; position: relative; z-index: 2;
             animation: smooth-text-breathe 1.6s infinite alternate var(--smooth-ease);
         }
 
@@ -93,15 +90,7 @@
         }
         #playerWrapper.visible .glass-card.show { opacity: 1; transform: translateY(0) scale(1); }
 
-        h2 { 
-            margin: 0 0 15px 0; 
-            font-family: 'Philosopher', sans-serif; 
-            font-weight: 700; 
-            font-size: 2.2em; 
-            letter-spacing: 1px; 
-            color: #ffffff; 
-            animation: breathe-glow 4s infinite alternate var(--smooth-ease); 
-        }
+        h2 { margin: 0 0 15px 0; font-weight: 800; font-size: 1.6em; letter-spacing: 2px; color: #ffffff; animation: breathe-glow 4s infinite alternate var(--smooth-ease); }
         @keyframes breathe-glow { 0% { text-shadow: 0 0 5px rgba(255,255,255,0.1); } 100% { text-shadow: 0 0 15px rgba(255,255,255,0.6), 0 0 25px rgba(255,255,255,0.2); } }
 
         .custom-file-upload {
@@ -113,25 +102,23 @@
         .custom-file-upload:active { transform: translateY(1px) scale(0.97); }
         input[type="file"] { display: none; }
 
-        #visualizer { width: 100%; height: 40px; margin-bottom: 15px; display: block; border-radius: 10px; }
+        /* --- VISUALISATOR CANVAS --- */
+        #visualizer { width: 100%; height: 40px; margin-bottom: 15px; display: block; border-radius: 10px; opacity: 0.8; }
 
         .status { 
             font-size: 0.85em; font-weight: 300; color: rgba(255, 255, 255, 0.5); margin-bottom: 15px; transition: color 0.4s var(--smooth-ease); 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; display: block; box-sizing: border-box; padding: 0 10px;
         }
 
-        .progress-container { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; font-size: 0.75em; font-weight: 400; color: rgba(255, 255, 255, 0.5); }
+        .progress-container { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 20px; font-size: 0.75em; font-weight: 400; color: rgba(255, 255, 255, 0.5); }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 5px; outline: none; cursor: pointer; transition: background 0.4s var(--smooth-ease); }
         @media (hover: hover) { input[type="range"]:hover { background: rgba(255, 255, 255, 0.3); } }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); cursor: pointer; transition: transform 0.3s var(--bouncy-ease), box-shadow 0.3s var(--smooth-ease); }
         @media (hover: hover) { input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.6); box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); } }
 
+        /* --- KONTROL TOMBOL --- */
         .controls-main { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 15px; }
-        
-        .controls-sub { 
-            display: flex; justify-content: center; align-items: center; gap: 8px; 
-            margin-bottom: 15px; flex-wrap: wrap; 
-        }
+        .controls-sub { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
         
         button { 
             border: none; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -139,62 +126,29 @@
             transition: all 0.4s var(--smooth-ease); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; 
         }
         @media (hover: hover) { button:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-3px); border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.2); } }
-        button:active { transform: translateY(1px) scale(0.92); transition: all 0.1; }
+        button:active { transform: translateY(1px) scale(0.92); transition: all 0.1s; }
         
-        #playBtn, #pauseBtn { padding: 12px 24px; font-size: 1.3em; background: #ffffff; color: #000000; font-weight: bold; box-shadow: 0 5px 15px rgba(255,255,255,0.1); }
+        #playBtn, #pauseBtn { padding: 14px 26px; font-size: 1.3em; background: #ffffff; color: #000000; font-weight: bold; box-shadow: 0 5px 15px rgba(255,255,255,0.1); }
         @media (hover: hover) { #playBtn:hover, #pauseBtn:hover { background: #e0e0e0; transform: translateY(-4px) scale(1.05); box-shadow: 0 15px 25px rgba(255, 255, 255, 0.25); } }
         
-        .sub-btn { padding: 8px 12px; font-size: 0.7em; font-weight: 600;}
+        .sub-btn { padding: 8px 15px; font-size: 0.75em; font-weight: 600;}
         .sub-btn.active { background: rgba(255, 255, 255, 0.2); border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
-        /* --- CONTENT AREA --- */
-        .content-area {
-            background: rgba(0, 0, 0, 0.15); border-radius: 16px; height: 160px; position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.03); padding: 5px; overflow: hidden;
+        /* --- PLAYLIST --- */
+        .playlist-container { 
+            background: rgba(0, 0, 0, 0.15); border-radius: 16px; max-height: 140px; overflow-y: auto; text-align: left; 
+            border: 1px solid rgba(255, 255, 255, 0.03); padding: 5px; -webkit-overflow-scrolling: touch; 
         }
-
-        .playlist-container, .lyrics-container {
-            width: 100%; height: 100%; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch;
-            transition: opacity 0.4s var(--smooth-ease), transform 0.4s var(--smooth-ease);
-            position: absolute; top: 0; left: 0; padding: 5px; box-sizing: border-box;
-        }
-
-        .lyrics-container { opacity: 0; transform: translateX(20px); pointer-events: none; }
-        .content-area.show-lyrics .playlist-container { opacity: 0; transform: translateX(-20px); pointer-events: none; }
-        .content-area.show-lyrics .lyrics-container { opacity: 1; transform: translateX(0); pointer-events: auto; }
-
-        /* --- PLAYLIST STYLES --- */
         .playlist-item { 
-            display: flex; justify-content: space-between; align-items: center;
             padding: 10px 15px; border-radius: 10px; margin-bottom: 2px; cursor: pointer; font-size: 0.8em; font-weight: 400; 
-            color: rgba(255, 255, 255, 0.5); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(255, 255, 255, 0.5); 
             transition: all 0.3s var(--smooth-ease); opacity: 0; transform: translateY(15px); animation: slideUpFade 0.5s var(--smooth-ease) forwards; 
             -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
         }
         @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
         @media (hover: hover) { .playlist-item:hover { background: rgba(255, 255, 255, 0.08); padding-left: 20px; color: #fff; } }
-        .playlist-item.playing { color: #000; font-weight: 600; background: #fff; }
-
-        .delete-btn {
-            font-size: 1.2em;
-            color: rgba(255, 255, 255, 0.2);
-            padding: 0 5px;
-            transition: all 0.3s;
-            margin-left: 10px;
-        }
-        .delete-btn:hover { color: #ff4d4d; transform: scale(1.2); }
-        .playlist-item.playing .delete-btn { color: rgba(0, 0, 0, 0.3); }
-        .playlist-item.playing .delete-btn:hover { color: #ff0000; }
+        .playlist-item.playing { color: #000; font-weight: 600; background: #fff; padding-left: 20px; transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
         
-        /* --- LYRICS STYLES --- */
-        #lyricsEditor {
-            width: 100%; height: 100%; background: transparent; border: none; outline: none; resize: none;
-            color: #fff; font-family: 'Poppins', sans-serif; font-size: 0.85em; text-align: center;
-            line-height: 1.8; font-weight: 400; padding: 10px; box-sizing: border-box;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-        #lyricsEditor::placeholder { color: rgba(255,255,255,0.3); font-style: italic; }
-
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
     </style>
 </head>
@@ -218,7 +172,7 @@
         </label>
         
         <audio id="myAudio"></audio>
-        <canvas id="visualizer"></canvas>
+        <canvas id="visualizer" width="300" height="40"></canvas>
         
         <div class="status" id="statusText" title="Sistem siap. Pilih lagu Anda.">Sistem siap.</div>
 
@@ -236,45 +190,53 @@
         </div>
         
         <div class="controls-sub">
-            <button id="loopBtn" class="sub-btn">🔁 Loop</button>
-            <button id="shuffleBtn" class="sub-btn">🔀 Shuffle</button>
-            <button id="toggleLyricsBtn" class="sub-btn" style="border-color: #fff; background: rgba(255,255,255,0.1);">📝 Lirik</button>
+            <button id="loopBtn" class="sub-btn">🔁 Loop: OFF</button>
+            <button id="shuffleBtn" class="sub-btn">🔀 Shuffle: OFF</button>
         </div>
 
-        <div class="content-area" id="contentArea">
-            <div class="playlist-container" id="playlist">
-                <div class="playlist-item" style="text-align:center; color:rgba(255,255,255,0.3); cursor:default; animation-delay: 0s;">
-                    Playlist kosong
-                </div>
-            </div>
-            
-            <div class="lyrics-container">
-                <textarea id="lyricsEditor" placeholder="Tempelkan (Paste) lirik lagu di sini...&#10;&#10;Lirik akan otomatis tersimpan untuk lagu ini!"></textarea>
+        <div class="playlist-container" id="playlist">
+            <div class="playlist-item" style="text-align:center; color:rgba(255,255,255,0.3); cursor:default; animation-delay: 0s;">
+                Playlist kosong
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. DB UNTUK LAGU (File) ---
+    // --- 1. INISIALISASI DATABASE BROWSER (INDEXEDDB) ---
     let db;
     const request = indexedDB.open("NikaMusicDB", 1);
-    request.onupgradeneeded = (event) => { db = event.target.result; db.createObjectStore("songs", { keyPath: "name" }); };
-    request.onsuccess = (event) => { db = event.target.result; loadPlaylistFromDB(); };
+
+    request.onupgradeneeded = (event) => {
+        db = event.target.result;
+        // Membuat tabel penyimpanan bernama "songs"
+        db.createObjectStore("songs", { keyPath: "name" });
+    };
+
+    request.onsuccess = (event) => {
+        db = event.target.result;
+        // Saat web dimuat, langsung cek apakah ada lagu yang tersimpan sebelumnya
+        loadPlaylistFromDB(); 
+    };
+
     function savePlaylistToDB(filesArray) {
         const transaction = db.transaction(["songs"], "readwrite");
         const store = transaction.objectStore("songs");
-        store.clear().onsuccess = () => {
-            filesArray.forEach(file => store.put({ name: file.name, data: file }));
-        };
+        store.clear(); // Bersihkan yang lama agar tidak menumpuk error
+        filesArray.forEach(file => {
+            store.put({ name: file.name, data: file });
+        });
     }
+
     function loadPlaylistFromDB() {
         const transaction = db.transaction(["songs"], "readonly");
         const store = transaction.objectStore("songs");
         const req = store.getAll();
+
         req.onsuccess = (event) => {
             const results = event.target.result;
             if (results && results.length > 0) {
+                // Mengekstrak kembali file yang tersimpan
                 songFiles = results.map(item => item.data);
                 renderPlaylistUI();
                 statusText.innerText = "Lagu dipulihkan 🔄 Klik lagu untuk putar.";
@@ -301,7 +263,7 @@
         }, 3200); 
     });
 
-    // --- VARIABEL PEMUTAR ---
+    // --- VARIABEL UTAMA PEMUTAR ---
     const audio = document.getElementById('myAudio');
     const upload = document.getElementById('audioUpload');
     const playBtn = document.getElementById('playBtn');
@@ -310,11 +272,8 @@
     const nextBtn = document.getElementById('nextBtn');
     const loopBtn = document.getElementById('loopBtn');
     const shuffleBtn = document.getElementById('shuffleBtn');
-    const toggleLyricsBtn = document.getElementById('toggleLyricsBtn');
     const statusText = document.getElementById('statusText');
     const playlistContainer = document.getElementById('playlist');
-    const contentArea = document.getElementById('contentArea');
-    const lyricsEditor = document.getElementById('lyricsEditor');
     const progressBar = document.getElementById('progressBar');
     const currentTimeEl = document.getElementById('currentTime');
     const durationTimeEl = document.getElementById('durationTime');
@@ -324,101 +283,60 @@
     let songFiles = [];
     let currentSongIndex = -1;
     let isShuffle = false;
-    let isLyricsMode = false;
     audio.loop = false; 
 
-    // --- MODERN SYMMETRICAL WAVEFORM VISUALIZER ---
+    // --- VISUALIZATOR MUSIK ---
     let audioCtx, analyser, source, dataArray;
     const canvas = document.getElementById('visualizer');
-    const ctx = canvas.getContext('2d');
+    const canvasCtx = canvas.getContext('2d');
 
     function initVisualizer() {
         if(audioCtx) return; 
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
         source = audioCtx.createMediaElementSource(audio);
-        
-        // PERBAIKAN VITAL UNTUK BACKGROUND:
-        // Sambungkan audio elemen langsung ke output (destination) TANPA lewat AudioContext saja.
-        // Ini memastikan audio tidak ter-mute saat AudioContext tertidur di background.
         source.connect(analyser);
-        source.connect(audioCtx.destination); 
+        analyser.connect(audioCtx.destination);
         
-        analyser.fftSize = 128; 
+        analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
-        
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        ctx.scale(dpr, dpr);
         drawVisualizer();
     }
 
     function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
-        if(audio.paused) return;
-        
         analyser.getByteFrequencyData(dataArray);
-        const w = canvas.width / (window.devicePixelRatio || 1);
-        const h = canvas.height / (window.devicePixelRatio || 1);
-        ctx.clearRect(0, 0, w, h);
-        const centerX = w / 2;
-        const centerY = h / 2;
-        let bassSum = 0; 
-        for(let i = 0; i < dataArray.length / 1.5; i++) {
-            const mag = (dataArray[i] / 255);
-            const barH = mag * (h / 2) * 0.9;
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / dataArray.length) * 1.5;
+        let x = 0; let bassSum = 0; 
+
+        for(let i = 0; i < dataArray.length; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height;
             if (i < 5) bassSum += dataArray[i];
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + mag * 0.7})`;
-            // Draw Symmetrical Modern
-            ctx.beginPath(); ctx.roundRect(centerX + (i * 5), centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
-            ctx.beginPath(); ctx.roundRect(centerX - (i * 5) - 3, centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
+            canvasCtx.fillStyle = `rgba(255, 255, 255, ${0.4 + (dataArray[i]/255)*0.6})`;
+            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 2;
         }
+
         if (!audio.paused) {
-            let sc = 1 + (bassSum / 5 / 255) * 0.15;
-            blob1.style.transform = `scale(${sc}) translate(-10px, -10px)`;
-            blob2.style.transform = `scale(${sc}) translate(10px, 10px)`;
+            let avgBass = bassSum / 5;
+            let scaleEffect = 1 + (avgBass / 255) * 0.15; 
+            blob1.style.transform = `scale(${scaleEffect}) translate(-10px, -10px)`;
+            blob2.style.transform = `scale(${scaleEffect}) translate(10px, 10px)`;
+        } else {
+            blob1.style.transform = `scale(1) translate(0, 0)`;
+            blob2.style.transform = `scale(1) translate(0, 0)`;
         }
     }
 
-    // --- FIX BACKGROUND SOUND ---
-    function updateMediaSession(songName) {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: songName,
-                artist: 'Nika Player',
-                artwork: [{ src: 'https://via.placeholder.com/512/FFFFFF/000000?text=Nika', sizes: '512x512', type: 'image/png' }]
-            });
-            // Status Playback SANGAT PENTING
-            navigator.mediaSession.playbackState = "playing";
-
-            navigator.mediaSession.setActionHandler('play', () => audio.play());
-            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-            navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
-            navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
-        }
+    // --- FUNGSI PEMUTAR & PLAYLIST ---
+    function cleanFileName(filename) { return filename.replace(/\.(mp3|mp4)$/i, ''); }
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        const min = Math.floor(seconds / 60); const sec = Math.floor(seconds % 60);
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
-
-    function loadLyricsForCurrentSong() {
-        if(currentSongIndex === -1) return;
-        let songName = cleanFileName(songFiles[currentSongIndex].name);
-        let savedLyrics = localStorage.getItem('lyrics_' + songName);
-        lyricsEditor.value = savedLyrics || "";
-    }
-
-    lyricsEditor.addEventListener('input', () => {
-        if(currentSongIndex !== -1) {
-            let songName = cleanFileName(songFiles[currentSongIndex].name);
-            localStorage.setItem('lyrics_' + songName, lyricsEditor.value);
-        }
-    });
-
-    toggleLyricsBtn.addEventListener('click', () => {
-        isLyricsMode = !isLyricsMode;
-        contentArea.classList.toggle('show-lyrics', isLyricsMode);
-        toggleLyricsBtn.innerText = isLyricsMode ? "🎵 Playlist" : "📝 Lirik";
-    });
 
     audio.addEventListener('timeupdate', () => {
         if (audio.duration) {
@@ -430,71 +348,119 @@
     audio.addEventListener('loadedmetadata', () => { durationTimeEl.innerText = formatTime(audio.duration); });
     progressBar.addEventListener('input', () => { if (audio.duration) audio.currentTime = (progressBar.value / 100) * audio.duration; });
 
+    // Fungsi menggambar ulang list HTML
     function renderPlaylistUI() {
         playlistContainer.innerHTML = ""; 
-        if (songFiles.length === 0) {
-            playlistContainer.innerHTML = '<div class="playlist-item" style="text-align:center; color:rgba(255,255,255,0.3); cursor:default;">Playlist kosong</div>';
-            return;
-        }
         songFiles.forEach((file, index) => {
             const item = document.createElement('div');
-            item.className = 'playlist-item' + (currentSongIndex === index ? ' playing' : ''); 
-            item.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${cleanFileName(file.name)}</span><span class="delete-btn">&times;</span>`;
-            item.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); removeSong(index); };
-            item.onclick = () => playSong(index);
+            item.className = 'playlist-item'; 
+            let displayName = cleanFileName(file.name);
+            item.innerText = displayName; 
+            item.title = displayName; 
+            item.style.animationDelay = `${index * 0.05}s`; 
+            item.addEventListener('click', () => playSong(index));
             playlistContainer.appendChild(item);
         });
     }
 
-    function removeSong(index) {
-        if (index === currentSongIndex) { audio.pause(); audio.src = ""; currentSongIndex = -1; statusText.innerText = "Lagu dihapus."; playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; }
-        else if (index < currentSongIndex) { currentSongIndex--; }
-        songFiles.splice(index, 1);
-        savePlaylistToDB(songFiles); renderPlaylistUI();
-    }
-
+    // Event saat tombol upload lagu baru
     upload.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            songFiles = [...songFiles, ...Array.from(e.target.files)];
-            renderPlaylistUI(); savePlaylistToDB(songFiles);
+        const newFiles = Array.from(e.target.files);
+        if (newFiles.length > 0) {
+            songFiles = newFiles; // Memperbarui daftar internal
+            renderPlaylistUI(); // Menggambar daftar di layar
+            savePlaylistToDB(songFiles); // MENYIMPAN KE DATABASE BROWSER
+            
+            statusText.innerText = "Playlist diperbarui.";
+            statusText.style.color = "rgba(255,255,255,0.8)";
+            currentSongIndex = -1; 
         }
     });
 
     function playSong(index) {
         if(songFiles.length === 0) return;
+        
         initVisualizer();
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
         currentSongIndex = index;
         const file = songFiles[index];
         audio.src = URL.createObjectURL(file);
-        audio.play().then(() => {
-            updateMediaSession(cleanFileName(file.name));
-        });
-        statusText.innerText = "Memutar: " + cleanFileName(file.name);
-        loadLyricsForCurrentSong();
-        playBtn.style.display = 'none'; pauseBtn.style.display = 'block';
-        renderPlaylistUI();
+        audio.play();
+        
+        let songName = cleanFileName(file.name);
+        statusText.innerText = "Memutar: " + songName;
+        statusText.title = "Memutar: " + songName; 
+        statusText.style.color = "#fff";
+        
+        playBtn.style.display = 'none';
+        pauseBtn.style.display = 'block';
+        
+        const items = document.querySelectorAll('.playlist-item');
+        items.forEach(el => el.classList.remove('playing'));
+        if(items[index]) items[index].classList.add('playing');
+        items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     playBtn.addEventListener('click', () => {
         initVisualizer();
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        if (audio.src) { audio.play(); } else if (songFiles.length > 0) { playSong(0); }
+
+        if (audio.src && audio.src !== window.location.href) { 
+            audio.play(); playBtn.style.display = 'none'; pauseBtn.style.display = 'block'; statusText.innerText = "Melanjutkan..."; 
+        } else if (songFiles.length > 0) { 
+            playSong(isShuffle ? Math.floor(Math.random() * songFiles.length) : 0); 
+        }
     });
 
-    pauseBtn.addEventListener('click', () => { audio.pause(); });
-    audio.onplay = () => { playBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if(currentSongIndex!==-1) updateMediaSession(cleanFileName(songFiles[currentSongIndex].name)); };
-    audio.onpause = () => { playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; if('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused"; };
-
-    function playPrev() { if(songFiles.length === 0) return; playSong((currentSongIndex - 1 + songFiles.length) % songFiles.length); }
-    function playNextSong() { if(songFiles.length === 0) return; playSong(isShuffle ? Math.floor(Math.random() * songFiles.length) : (currentSongIndex + 1) % songFiles.length); }
+    pauseBtn.addEventListener('click', () => {
+        audio.pause(); playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; statusText.innerText = "Dijeda.";
+    });
 
     nextBtn.addEventListener('click', playNextSong);
-    prevBtn.addEventListener('click', playPrev);
-    audio.addEventListener('ended', () => { if (audio.loop) { audio.play(); } else { playNextSong(); } });
+    prevBtn.addEventListener('click', () => {
+        if(songFiles.length === 0) return;
+        let prevIndex = currentSongIndex - 1;
+        if(prevIndex < 0) prevIndex = songFiles.length - 1; 
+        playSong(prevIndex);
+    });
 
-    loopBtn.addEventListener('click', () => { audio.loop = !audio.loop; loopBtn.classList.toggle('active', audio.loop); if (audio.loop) { isShuffle = false; shuffleBtn.classList.remove('active'); } });
-    shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); if (isShuffle) { audio.loop = false; loopBtn.classList.remove('active'); } });
+    function playNextSong() {
+        if(songFiles.length === 0) return;
+        if(isShuffle) {
+            let randIndex = Math.floor(Math.random() * songFiles.length);
+            while(randIndex === currentSongIndex && songFiles.length > 1) randIndex = Math.floor(Math.random() * songFiles.length);
+            playSong(randIndex);
+        } else {
+            let nextIndex = currentSongIndex + 1;
+            if(nextIndex >= songFiles.length) nextIndex = 0; 
+            playSong(nextIndex);
+        }
+    }
+
+    audio.addEventListener('ended', () => {
+        if (audio.loop) { audio.play(); } else { playNextSong(); }
+    });
+
+    loopBtn.addEventListener('click', () => {
+        audio.loop = !audio.loop;
+        if (audio.loop) { 
+            loopBtn.classList.add('active'); loopBtn.innerText = "🔁 Loop: ON"; 
+            isShuffle = false; shuffleBtn.classList.remove('active'); shuffleBtn.innerText = "🔀 Shuffle: OFF";
+        } else { 
+            loopBtn.classList.remove('active'); loopBtn.innerText = "🔁 Loop: OFF"; 
+        }
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+        isShuffle = !isShuffle;
+        if (isShuffle) { 
+            shuffleBtn.classList.add('active'); shuffleBtn.innerText = "🔀 Shuffle: ON"; 
+            audio.loop = false; loopBtn.classList.remove('active'); loopBtn.innerText = "🔁 Loop: OFF";
+        } else { 
+            shuffleBtn.classList.remove('active'); shuffleBtn.innerText = "🔀 Shuffle: OFF"; 
+        }
+    });
 </script>
 
 </body>
