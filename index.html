@@ -113,13 +113,7 @@
         .custom-file-upload:active { transform: translateY(1px) scale(0.97); }
         input[type="file"] { display: none; }
 
-        /* Modern Visualizer Styling */
-        #visualizer { 
-            width: 100%; height: 60px; 
-            margin-bottom: 15px; 
-            display: block; 
-            opacity: 0.9;
-        }
+        #visualizer { width: 100%; height: 35px; margin-bottom: 10px; display: block; border-radius: 10px; }
 
         .status { 
             font-size: 0.85em; font-weight: 300; color: rgba(255, 255, 255, 0.5); margin-bottom: 15px; transition: color 0.4s var(--smooth-ease); 
@@ -224,7 +218,7 @@
         </label>
         
         <audio id="myAudio"></audio>
-        <canvas id="visualizer"></canvas>
+        <canvas id="visualizer" width="300" height="35"></canvas>
         
         <div class="status" id="statusText" title="Sistem siap. Pilih lagu Anda.">Sistem siap.</div>
 
@@ -345,64 +339,40 @@
         source = audioCtx.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
-        
-        // FFT Size ditingkatkan agar bar lebih rapat dan halus
         analyser.fftSize = 128; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         
-        // Sync resolution
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = canvas.offsetWidth * dpr;
-        canvas.height = canvas.offsetHeight * dpr;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
-
         drawVisualizer();
     }
 
     function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
         analyser.getByteFrequencyData(dataArray);
-        
-        const w = canvas.offsetWidth;
-        const h = canvas.offsetHeight;
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
         ctx.clearRect(0, 0, w, h);
-        
         const centerX = w / 2;
         const centerY = h / 2;
-        const barWidth = 2; // Batang lebih tipis (modern)
-        const gap = 4; // Jarak antar batang
-        const count = dataArray.length / 1.5; // Batasi jumlah batang agar fokus di tengah
-
         let bassSum = 0; 
-        for(let i = 0; i < count; i++) {
-            // Skala tinggi batang (makin ke pinggir makin kecil)
-            const magnitude = (dataArray[i] / 255);
-            const barHeight = magnitude * (h / 2) * 0.9;
+        for(let i = 0; i < dataArray.length / 1.5; i++) {
+            const mag = (dataArray[i] / 255);
+            const barH = mag * (h / 2) * 0.9;
             if (i < 5) bassSum += dataArray[i];
-
-            // Warna Gradient Putih ke Transparan
-            const opacity = 0.2 + magnitude * 0.8;
-            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-            
-            // Mirroring Kanan
-            drawRoundedRect(centerX + (i * gap), centerY - (barHeight / 2), barWidth, barHeight, 2);
-            // Mirroring Kiri
-            drawRoundedRect(centerX - (i * gap) - barWidth, centerY - (barHeight / 2), barWidth, barHeight, 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + mag * 0.7})`;
+            // Draw Symmetrical
+            ctx.beginPath(); ctx.roundRect(centerX + (i * 5), centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(centerX - (i * 5) - 3, centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
         }
-
-        // Background Aura Pulse
         if (!audio.paused) {
             let sc = 1 + (bassSum / 5 / 255) * 0.15;
             blob1.style.transform = `scale(${sc}) translate(-10px, -10px)`;
             blob2.style.transform = `scale(${sc}) translate(10px, 10px)`;
         }
-    }
-
-    function drawRoundedRect(x, y, w, h, r) {
-        if (h < 2) h = 2; // Minimal height agar terlihat garis tengah saat hening
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, r);
-        ctx.fill();
     }
 
     // --- FUNGSI PEMUTAR & LIRIK ---
@@ -411,6 +381,24 @@
         if (isNaN(seconds)) return "0:00";
         const min = Math.floor(seconds / 60); const sec = Math.floor(seconds % 60);
         return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // --- FIX BACKGROUND PLAY ---
+    function updateMediaSession(songName) {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: songName,
+                artist: 'PlayList Nika',
+                artwork: [{ src: 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
+            });
+            // Status Playback SANGAT PENTING untuk Chrome mobile
+            navigator.mediaSession.playbackState = "playing";
+
+            navigator.mediaSession.setActionHandler('play', () => audio.play());
+            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
+            navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
+        }
     }
 
     function loadLyricsForCurrentSong() {
@@ -429,15 +417,8 @@
 
     toggleLyricsBtn.addEventListener('click', () => {
         isLyricsMode = !isLyricsMode;
-        if(isLyricsMode) {
-            contentArea.classList.add('show-lyrics');
-            toggleLyricsBtn.classList.add('active');
-            toggleLyricsBtn.innerText = "🎵 Playlist";
-        } else {
-            contentArea.classList.remove('show-lyrics');
-            toggleLyricsBtn.classList.remove('active');
-            toggleLyricsBtn.innerText = "📝 Lirik";
-        }
+        contentArea.classList.toggle('show-lyrics', isLyricsMode);
+        toggleLyricsBtn.innerText = isLyricsMode ? "🎵 Playlist" : "📝 Lirik";
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -459,134 +440,62 @@
         songFiles.forEach((file, index) => {
             const item = document.createElement('div');
             item.className = 'playlist-item' + (currentSongIndex === index ? ' playing' : ''); 
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.innerText = cleanFileName(file.name);
-            nameSpan.style.flex = "1";
-            nameSpan.style.overflow = "hidden";
-            nameSpan.style.textOverflow = "ellipsis";
-            
-            const delBtn = document.createElement('span');
-            delBtn.innerHTML = "&times;";
-            delBtn.className = "delete-btn";
-            delBtn.onclick = (e) => {
-                e.stopPropagation(); 
-                removeSong(index);
-            };
-
+            item.innerHTML = `<span style="flex:1; overflow:hidden; text-overflow:ellipsis;">${cleanFileName(file.name)}</span><span class="delete-btn">&times;</span>`;
+            item.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); removeSong(index); };
             item.onclick = () => playSong(index);
-            item.appendChild(nameSpan);
-            item.appendChild(delBtn);
-            item.style.animationDelay = `${index * 0.05}s`; 
             playlistContainer.appendChild(item);
         });
     }
 
     function removeSong(index) {
-        if (index === currentSongIndex) {
-            audio.pause();
-            audio.src = "";
-            currentSongIndex = -1;
-            statusText.innerText = "Lagu dihapus.";
-            playBtn.style.display = 'block';
-            pauseBtn.style.display = 'none';
-        } else if (index < currentSongIndex) {
-            currentSongIndex--;
-        }
-        
+        if (index === currentSongIndex) { audio.pause(); audio.src = ""; currentSongIndex = -1; statusText.innerText = "Lagu dihapus."; playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; }
+        else if (index < currentSongIndex) { currentSongIndex--; }
         songFiles.splice(index, 1);
-        savePlaylistToDB(songFiles); 
-        renderPlaylistUI();
+        savePlaylistToDB(songFiles); renderPlaylistUI();
     }
 
     upload.addEventListener('change', function(e) {
-        const newFiles = Array.from(e.target.files);
-        if (newFiles.length > 0) {
-            songFiles = [...songFiles, ...newFiles]; 
-            renderPlaylistUI(); 
-            savePlaylistToDB(songFiles); 
-            statusText.innerText = "Playlist diperbarui.";
-            statusText.style.color = "rgba(255,255,255,0.8)";
+        if (e.target.files.length > 0) {
+            songFiles = [...songFiles, ...Array.from(e.target.files)];
+            renderPlaylistUI(); savePlaylistToDB(songFiles);
         }
     });
 
     function playSong(index) {
         if(songFiles.length === 0) return;
-        
         initVisualizer();
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
         currentSongIndex = index;
         const file = songFiles[index];
         audio.src = URL.createObjectURL(file);
-        audio.play();
-        
-        let songName = cleanFileName(file.name);
-        statusText.innerText = "Memutar: " + songName;
-        
+        audio.play().then(() => {
+            updateMediaSession(cleanFileName(file.name));
+        });
+        statusText.innerText = "Memutar: " + cleanFileName(file.name);
         loadLyricsForCurrentSong();
-        playBtn.style.display = 'none';
-        pauseBtn.style.display = 'block';
-        
-        renderPlaylistUI(); 
-        
-        const items = document.querySelectorAll('.playlist-item');
-        if(items[index]) items[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        // Update Media Session for LockScreen
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: songName,
-                artist: 'PlayList Nika',
-                artwork: [{ src: 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
-            });
-            navigator.mediaSession.setActionHandler('play', () => audio.play());
-            navigator.mediaSession.setActionHandler('pause', () => audio.pause());
-            navigator.mediaSession.setActionHandler('nexttrack', () => playNextSong());
-            navigator.mediaSession.setActionHandler('previoustrack', () => playSong((currentSongIndex - 1 + songFiles.length) % songFiles.length));
-        }
+        playBtn.style.display = 'none'; pauseBtn.style.display = 'block';
+        renderPlaylistUI();
     }
 
     playBtn.addEventListener('click', () => {
         initVisualizer();
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        if (audio.src && audio.src !== window.location.href) { 
-            audio.play(); playBtn.style.display = 'none'; pauseBtn.style.display = 'block'; 
-        } else if (songFiles.length > 0) { 
-            playSong(isShuffle ? Math.floor(Math.random() * songFiles.length) : 0); 
-        }
+        if (audio.src) { audio.play(); } else if (songFiles.length > 0) { playSong(0); }
     });
 
-    pauseBtn.addEventListener('click', () => {
-        audio.pause(); playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; statusText.innerText = "Dijeda.";
-    });
+    pauseBtn.addEventListener('click', () => { audio.pause(); });
+    audio.onplay = () => { playBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if(currentSongIndex!==-1) updateMediaSession(cleanFileName(songFiles[currentSongIndex].name)); };
+    audio.onpause = () => { playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; if('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused"; };
+
+    function playPrev() { if(songFiles.length === 0) return; playSong((currentSongIndex - 1 + songFiles.length) % songFiles.length); }
+    function playNextSong() { if(songFiles.length === 0) return; playSong(isShuffle ? Math.floor(Math.random() * songFiles.length) : (currentSongIndex + 1) % songFiles.length); }
 
     nextBtn.addEventListener('click', playNextSong);
-    prevBtn.addEventListener('click', () => {
-        if(songFiles.length === 0) return;
-        let prevIndex = (currentSongIndex - 1 + songFiles.length) % songFiles.length;
-        playSong(prevIndex);
-    });
-
-    function playNextSong() {
-        if(songFiles.length === 0) return;
-        let nextIndex = isShuffle ? Math.floor(Math.random() * songFiles.length) : (currentSongIndex + 1) % songFiles.length;
-        playSong(nextIndex);
-    }
-
+    prevBtn.addEventListener('click', playPrev);
     audio.addEventListener('ended', () => { if (audio.loop) { audio.play(); } else { playNextSong(); } });
 
-    loopBtn.addEventListener('click', () => {
-        audio.loop = !audio.loop;
-        loopBtn.classList.toggle('active', audio.loop);
-        if (audio.loop) { isShuffle = false; shuffleBtn.classList.remove('active'); }
-    });
-
-    shuffleBtn.addEventListener('click', () => {
-        isShuffle = !isShuffle;
-        shuffleBtn.classList.toggle('active', isShuffle);
-        if (isShuffle) { audio.loop = false; loopBtn.classList.remove('active'); }
-    });
+    loopBtn.addEventListener('click', () => { audio.loop = !audio.loop; loopBtn.classList.toggle('active', audio.loop); if (audio.loop) { isShuffle = false; shuffleBtn.classList.remove('active'); } });
+    shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); if (isShuffle) { audio.loop = false; loopBtn.classList.remove('active'); } });
 </script>
 
 </body>
