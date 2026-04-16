@@ -217,8 +217,8 @@
             + Update Playlist
         </label>
         
-        <audio id="myAudio"></audio>
-        <canvas id="visualizer" width="300" height="35"></canvas>
+        <audio id="myAudio" preload="auto" crossorigin="anonymous"></audio>
+        <canvas id="visualizer"></canvas>
         
         <div class="status" id="statusText" title="Sistem siap. Pilih lagu Anda.">Sistem siap.</div>
 
@@ -337,8 +337,12 @@
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
         source = audioCtx.createMediaElementSource(audio);
+        
+        // PERBAIKAN PENTING: Sambungkan ke analyser DAN destination secara terpisah
+        // Ini memastikan audio tetap mengalir ke speaker meskipun visualizer berhenti di background.
         source.connect(analyser);
-        analyser.connect(audioCtx.destination);
+        source.connect(audioCtx.destination); 
+        
         analyser.fftSize = 128; 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
         
@@ -347,27 +351,38 @@
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
+
         drawVisualizer();
     }
 
     function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
+        if(audio.paused) return; // Hemat baterai jika lagu dijeda
+        
         analyser.getByteFrequencyData(dataArray);
         const w = canvas.width / (window.devicePixelRatio || 1);
         const h = canvas.height / (window.devicePixelRatio || 1);
         ctx.clearRect(0, 0, w, h);
+        
         const centerX = w / 2;
         const centerY = h / 2;
+        const count = dataArray.length / 1.5;
+
         let bassSum = 0; 
-        for(let i = 0; i < dataArray.length / 1.5; i++) {
-            const mag = (dataArray[i] / 255);
-            const barH = mag * (h / 2) * 0.9;
+        for(let i = 0; i < count; i++) {
+            const magnitude = (dataArray[i] / 255);
+            const barHeight = magnitude * (h / 2) * 0.9;
             if (i < 5) bassSum += dataArray[i];
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + mag * 0.7})`;
-            // Draw Symmetrical
-            ctx.beginPath(); ctx.roundRect(centerX + (i * 5), centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
-            ctx.beginPath(); ctx.roundRect(centerX - (i * 5) - 3, centerY - (barH / 2), 3, Math.max(barH, 2), 20); ctx.fill();
+
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + magnitude * 0.7})`;
+            
+            // Draw Symmetrical (Mekar dari tengah secara modern)
+            ctx.beginPath();
+            ctx.roundRect(centerX + (i * 5), centerY - (barHeight / 2), 3, Math.max(barHeight, 2), 20);
+            ctx.roundRect(centerX - (i * 5) - 3, centerY - (barHeight / 2), 3, Math.max(barHeight, 2), 20);
+            ctx.fill();
         }
+
         if (!audio.paused) {
             let sc = 1 + (bassSum / 5 / 255) * 0.15;
             blob1.style.transform = `scale(${sc}) translate(-10px, -10px)`;
@@ -383,7 +398,7 @@
         return `${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
 
-    // --- FIX BACKGROUND PLAY ---
+    // FIX BACKGROUND: Memberitahu sistem HP status audio
     function updateMediaSession(songName) {
         if ('mediaSession' in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -391,7 +406,7 @@
                 artist: 'PlayList Nika',
                 artwork: [{ src: 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
             });
-            // Status Playback SANGAT PENTING untuk Chrome mobile
+            // Status ini sangat krusial agar suara tidak hilang di background
             navigator.mediaSession.playbackState = "playing";
 
             navigator.mediaSession.setActionHandler('play', () => audio.play());
@@ -448,10 +463,11 @@
     }
 
     function removeSong(index) {
-        if (index === currentSongIndex) { audio.pause(); audio.src = ""; currentSongIndex = -1; statusText.innerText = "Lagu dihapus."; playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; }
-        else if (index < currentSongIndex) { currentSongIndex--; }
-        songFiles.splice(index, 1);
-        savePlaylistToDB(songFiles); renderPlaylistUI();
+        if (index === currentSongIndex) {
+            audio.pause(); audio.src = ""; currentSongIndex = -1;
+            statusText.innerText = "Lagu dihapus."; playBtn.style.display = 'block'; pauseBtn.style.display = 'none';
+        } else if (index < currentSongIndex) { currentSongIndex--; }
+        songFiles.splice(index, 1); savePlaylistToDB(songFiles); renderPlaylistUI();
     }
 
     upload.addEventListener('change', function(e) {
@@ -462,15 +478,16 @@
     });
 
     function playSong(index) {
-        if(songFiles.length === 0) return;
-        initVisualizer();
+        initVisualizer(); 
         if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        
         currentSongIndex = index;
         const file = songFiles[index];
         audio.src = URL.createObjectURL(file);
         audio.play().then(() => {
             updateMediaSession(cleanFileName(file.name));
-        });
+        }).catch(err => console.error("Play failed", err));
+        
         statusText.innerText = "Memutar: " + cleanFileName(file.name);
         loadLyricsForCurrentSong();
         playBtn.style.display = 'none'; pauseBtn.style.display = 'block';
@@ -484,8 +501,16 @@
     });
 
     pauseBtn.addEventListener('click', () => { audio.pause(); });
-    audio.onplay = () => { playBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if(currentSongIndex!==-1) updateMediaSession(cleanFileName(songFiles[currentSongIndex].name)); };
-    audio.onpause = () => { playBtn.style.display = 'block'; pauseBtn.style.display = 'none'; if('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused"; };
+    
+    // Sinkronisasi status tombol saat audio beraksi
+    audio.onplay = () => { 
+        playBtn.style.display = 'none'; pauseBtn.style.display = 'block';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+    };
+    audio.onpause = () => { 
+        playBtn.style.display = 'block'; pauseBtn.style.display = 'none';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+    };
 
     function playPrev() { if(songFiles.length === 0) return; playSong((currentSongIndex - 1 + songFiles.length) % songFiles.length); }
     function playNextSong() { if(songFiles.length === 0) return; playSong(isShuffle ? Math.floor(Math.random() * songFiles.length) : (currentSongIndex + 1) % songFiles.length); }
@@ -494,8 +519,17 @@
     prevBtn.addEventListener('click', playPrev);
     audio.addEventListener('ended', () => { if (audio.loop) { audio.play(); } else { playNextSong(); } });
 
-    loopBtn.addEventListener('click', () => { audio.loop = !audio.loop; loopBtn.classList.toggle('active', audio.loop); if (audio.loop) { isShuffle = false; shuffleBtn.classList.remove('active'); } });
-    shuffleBtn.addEventListener('click', () => { isShuffle = !isShuffle; shuffleBtn.classList.toggle('active', isShuffle); if (isShuffle) { audio.loop = false; loopBtn.classList.remove('active'); } });
+    loopBtn.addEventListener('click', () => {
+        audio.loop = !audio.loop;
+        loopBtn.classList.toggle('active', audio.loop);
+        if (audio.loop) { isShuffle = false; shuffleBtn.classList.remove('active'); }
+    });
+
+    shuffleBtn.addEventListener('click', () => {
+        isShuffle = !isShuffle;
+        shuffleBtn.classList.toggle('active', isShuffle);
+        if (isShuffle) { audio.loop = false; loopBtn.classList.remove('active'); }
+    });
 </script>
 
 </body>
